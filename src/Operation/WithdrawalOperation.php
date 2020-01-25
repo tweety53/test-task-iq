@@ -7,9 +7,7 @@ namespace App\Operation;
 
 use App\Entity\Account;
 use App\Entity\OperationHistory;
-use Doctrine\DBAL\LockMode;
 use Doctrine\ORM\EntityManagerInterface;
-use Psr\Log\LoggerInterface;
 
 /**
  * Class WithdrawalOperation
@@ -19,92 +17,34 @@ class WithdrawalOperation implements Operation
 {
     private EntityManagerInterface $em;
 
-    private LoggerInterface $logger;
-
     /**
      * DepositOperation constructor.
      * @param EntityManagerInterface $em
-     * @param LoggerInterface $logger
      */
-    public function __construct(EntityManagerInterface $em, LoggerInterface $logger)
+    public function __construct(EntityManagerInterface $em)
     {
         $this->em = $em;
-        $this->logger = $logger;
     }
 
     /**
      * @inheritDoc
+     * @throws \Exception
      */
-    public function process(array $data): bool
+    public function process(string $amount, ?Account $accountFrom, ?Account $accountTo): bool
     {
-        $userId = $data['user_from'];
-        $amount = $data['amount'];
-
-        if ($amount <= '0.00'){
+        if (null === $accountFrom) {
             return false;
         }
 
-        $callbackResult = true;
+        $accountFrom->setAmount((string)((double)$accountFrom->getAmount() - (double)$amount));
 
-        $callback = function () use ($userId, $amount, &$callbackResult) {
-            if (!$this->em->getConnection()->ping()) {
-                $this->em->getConnection()->close();
-                $this->em->getConnection()->connect();
-            }
+        $historyEntry = new OperationHistory();
+        $historyEntry->setAmount($amount);
+        $historyEntry->setUserFrom($accountFrom);
+        $historyEntry->setType(OperationHistory::TYPE_WITHDRAWAL);
 
-            $accountRepository = $this->em->getRepository(Account::class);
+        $this->em->persist($historyEntry);
 
-            /**
-             * @var Account $account
-             */
-            $account = $accountRepository->find(
-                $userId,
-                LockMode::PESSIMISTIC_WRITE
-            );
-
-            if (null === $account) {
-                $this->logger->warning('User not exists in DB.', [
-                    'operation' => 'withdrawal',
-                    'field' => 'account',
-                    'value' => $userId,
-                ]);
-                $callbackResult = false;
-            }
-
-            if (!$accountRepository->accountHasEnoughFunds($account->getUserId(), $amount)) {
-                $this->logger->info('User doesn\'t have enough funds on account.', [
-                    'operation' => 'withdrawal',
-                    'field' => 'amount',
-                    'userId' => $userId,
-                    'value' => $amount,
-                ]);
-                $callbackResult = false;
-            }
-
-            $account->setAmount((string)((double)$account->getAmount() - (double)$amount));
-
-            $historyEntry = new OperationHistory();
-            $historyEntry->setAmount($amount);
-            $historyEntry->setUserFrom($account);
-            $historyEntry->setType(OperationHistory::TYPE_WITHDRAWAL);
-
-            $this->em->persist($historyEntry);
-
-            $callbackResult = true;
-            return true;
-        };
-
-        try {
-            $this->em->transactional($callback);
-            $result = $callbackResult;
-        } catch (\Throwable $e){
-            $result = false;
-            $this->logger->error('Something went wrong in queries', [
-                'data' => $data,
-                'message' => $e->getMessage(),
-            ]);
-        }
-
-        return $result;
+        return true;
     }
 }

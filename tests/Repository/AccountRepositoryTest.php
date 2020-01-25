@@ -30,6 +30,19 @@ class AccountRepositoryTest extends KernelTestCase
         static::assertTrue($this->accountRepo->isAccountExists(1));
     }
 
+    private function init(): void
+    {
+        if (!self::$booted) {
+            self::bootKernel();
+        }
+
+        $container = self::$container;
+
+        $em = $container->get(EntityManagerInterface::class);
+
+        $this->accountRepo = $em->getRepository(Account::class);
+    }
+
     /**
      * @test
      * @covers \App\Repository\AccountRepository::isAccountExists
@@ -58,18 +71,5 @@ class AccountRepositoryTest extends KernelTestCase
     {
         $this->init();
         static::assertFalse($this->accountRepo->accountHasEnoughFunds(1, '111.11'));
-    }
-
-    private function init(): void
-    {
-        if (!self::$booted) {
-            self::bootKernel();
-        }
-
-        $container = self::$container;
-
-        $em = $container->get(EntityManagerInterface::class);
-
-        $this->accountRepo = $em->getRepository(Account::class);
     }
 }

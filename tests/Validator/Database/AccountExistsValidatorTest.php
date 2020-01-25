@@ -20,19 +20,6 @@ class AccountExistsValidatorTest extends ConstraintValidatorTestCase
     private MockObject $accountRepoMock;
 
     /**
-     * @return AccountExistsValidator
-     */
-    protected function createValidator(): AccountExistsValidator
-    {
-        $this->accountRepoMock = $this->createMock(AccountRepository::class);
-
-        $emMock = $this->createMock(EntityManagerInterface::class);
-        $emMock->method('getRepository')->willReturn($this->accountRepoMock);
-
-        return new AccountExistsValidator($emMock);
-    }
-
-    /**
      * @test
      * @covers \App\Validator\Database\AccountExistsValidator::validate
      */
@@ -53,6 +40,19 @@ class AccountExistsValidatorTest extends ConstraintValidatorTestCase
         $this->validator->validate(1, new AccountExistsConstraint());
         $this->buildViolation('User with provided ID does not exists in DB.')
             ->assertRaised();
+    }
+
+    /**
+     * @return AccountExistsValidator
+     */
+    protected function createValidator(): AccountExistsValidator
+    {
+        $this->accountRepoMock = $this->createMock(AccountRepository::class);
+
+        $emMock = $this->createMock(EntityManagerInterface::class);
+        $emMock->method('getRepository')->willReturn($this->accountRepoMock);
+
+        return new AccountExistsValidator($emMock);
     }
 
 }

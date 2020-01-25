@@ -17,19 +17,6 @@ class DepositFieldsValidatorTest extends KernelTestCase
 {
     private ValidatorInterface $validator;
 
-    protected function setUp()
-    {
-        parent::setUp();
-
-        if (!self::$booted) {
-            self::bootKernel();
-        }
-
-        $container = self::$container;
-
-        $this->validator = $container->get(ValidatorInterface::class);
-    }
-
     /**
      * @test
      * @covers \App\Validator\Request\DepositFieldsValidator::validate
@@ -49,7 +36,7 @@ class DepositFieldsValidatorTest extends KernelTestCase
 
     /**
      * @test
-     * @covers \App\Validator\Request\DepositFieldsValidator::validate
+     * @covers       \App\Validator\Request\DepositFieldsValidator::validate
      * @dataProvider badInputs
      * @param array $input
      */
@@ -142,6 +129,19 @@ class DepositFieldsValidatorTest extends KernelTestCase
                 ],
             ],
         ];
+    }
+
+    protected function setUp()
+    {
+        parent::setUp();
+
+        if (!self::$booted) {
+            self::bootKernel();
+        }
+
+        $container = self::$container;
+
+        $this->validator = $container->get(ValidatorInterface::class);
     }
 
 }

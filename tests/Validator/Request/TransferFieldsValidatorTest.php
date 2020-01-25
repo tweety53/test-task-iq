@@ -17,19 +17,6 @@ class TransferFieldsValidatorTest extends KernelTestCase
 {
     private ValidatorInterface $validator;
 
-    protected function setUp()
-    {
-        parent::setUp();
-
-        if (!self::$booted) {
-            self::bootKernel();
-        }
-
-        $container = self::$container;
-
-        $this->validator = $container->get(ValidatorInterface::class);
-    }
-
     /**
      * @test
      * @covers \App\Validator\Request\TransferFieldsValidator::validate
@@ -166,5 +153,18 @@ class TransferFieldsValidatorTest extends KernelTestCase
                 ],
             ],
         ];
+    }
+
+    protected function setUp()
+    {
+        parent::setUp();
+
+        if (!self::$booted) {
+            self::bootKernel();
+        }
+
+        $container = self::$container;
+
+        $this->validator = $container->get(ValidatorInterface::class);
     }
 }

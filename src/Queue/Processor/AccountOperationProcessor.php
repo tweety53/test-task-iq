@@ -46,7 +46,7 @@ class AccountOperationProcessor implements Processor, CommandSubscriberInterface
     {
         $msgData = json_decode($message->getBody(), true, 512, JSON_THROW_ON_ERROR);
 
-        $this->processorService->setOperation(new $msgData['type']($this->processorService->getEm(), $this->processorService->getLogger()));
+        $this->processorService->setOperation(new $msgData['type']($this->processorService->getEm()));
         return $this->processorService->process($msgData) ? self::ACK : self::REJECT;
 
     }

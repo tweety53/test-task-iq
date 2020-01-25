@@ -16,7 +16,6 @@
 1. Выполнить `composer install`
 2. Выполнить
  ```
-   ./bin/console doctrine:database:create
    ./bin/console doctrine:migrations:migrate
    ./bin/console doctrine:database:import database/initial_data.sql
    ```
@@ -25,7 +24,7 @@
 
 # Общий механизм работы
 
-1. Запускается N воркеров ожидающих сообщения на обработку (из корня проекта: `./bin/console enqueue:consume --setup-broker -vvv` + что-то по типу ` >/dev/null 2>&1` приписать если необходимо, логи все равно идут в файл в `/var/log`) 
+1. Запускается N воркеров ожидающих сообщения на обработку (из корня проекта: `./bin/console enqueue:consume --setup-broker -vvv` + что-то по типу ` >/dev/null 2>&1 или & + bg` приписать если необходимо, логи все равно идут в файл в `/var/log`) 
     
     PS ничего для контроля воркеров по типу supervisord / своих скриптов не прикручено (+ также после запуска в консоли может не работать ctrl + c , как я понял из-за особенностей amqp (забирает поток или чето такое :) )
     

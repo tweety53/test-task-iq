@@ -20,19 +20,6 @@ class AccountHasEnoughFundsValidatorTest extends ConstraintValidatorTestCase
     private MockObject $accountRepoMock;
 
     /**
-     * @return AccountHasEnoughFundsValidator
-     */
-    protected function createValidator(): AccountHasEnoughFundsValidator
-    {
-        $this->accountRepoMock = $this->createMock(AccountRepository::class);
-
-        $emMock = $this->createMock(EntityManagerInterface::class);
-        $emMock->method('getRepository')->willReturn($this->accountRepoMock);
-
-        return new AccountHasEnoughFundsValidator($emMock);
-    }
-
-    /**
      * @test
      * @covers \App\Validator\Database\AccountHasEnoughFundsValidator::validate
      */
@@ -53,5 +40,18 @@ class AccountHasEnoughFundsValidatorTest extends ConstraintValidatorTestCase
         $this->validator->validate(1, new AccountHasEnoughFundsConstraint(['userId' => 1, 'amount' => '111.11']));
         $this->buildViolation('User with provided ID does not have enough funds for this operation.')
             ->assertRaised();
+    }
+
+    /**
+     * @return AccountHasEnoughFundsValidator
+     */
+    protected function createValidator(): AccountHasEnoughFundsValidator
+    {
+        $this->accountRepoMock = $this->createMock(AccountRepository::class);
+
+        $emMock = $this->createMock(EntityManagerInterface::class);
+        $emMock->method('getRepository')->willReturn($this->accountRepoMock);
+
+        return new AccountHasEnoughFundsValidator($emMock);
     }
 }

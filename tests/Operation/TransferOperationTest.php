@@ -7,6 +7,8 @@ namespace App\Tests\Operation;
 use App\Entity\Account;
 use App\Entity\OperationHistory;
 use App\Operation\TransferOperation;
+use App\Service\OperationProcessorService;
+use App\Service\RequestFieldsValidatorService;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
@@ -19,6 +21,8 @@ class TransferOperationTest extends KernelTestCase
 {
     private TransferOperation $operation;
 
+    private OperationProcessorService $service;
+
     private EntityManagerInterface $em;
 
     /**
@@ -29,7 +33,8 @@ class TransferOperationTest extends KernelTestCase
     {
         $this->initClass();
 
-        $result = $this->operation->process([
+        $result = $this->service->process([
+            'type' => TransferOperation::class,
             'user_from' => 1,
             'user_to' => 2,
             'amount' => '1.33',
@@ -57,6 +62,24 @@ class TransferOperationTest extends KernelTestCase
         static::assertEquals('1.33', $operationHistory->getAmount());
     }
 
+    private function initClass(): void
+    {
+        if (!self::$booted) {
+            self::bootKernel();
+        }
+
+        $container = self::$container;
+
+        $this->em = $container->get(EntityManagerInterface::class);
+        $logger = $container->get(LoggerInterface::class);
+
+        $fieldsValidatorService = $container->get(RequestFieldsValidatorService::class);
+
+        $this->service = new OperationProcessorService($this->em, $logger, $fieldsValidatorService);
+        $this->operation = new TransferOperation($this->service->getEm());
+        $this->service->setOperation($this->operation);
+    }
+
     /**
      * @test
      * @covers \App\Operation\TransferOperation::process
@@ -65,7 +88,8 @@ class TransferOperationTest extends KernelTestCase
     {
         $this->initClass();
 
-        $result = $this->operation->process([
+        $result = $this->service->process([
+            'type' => TransferOperation::class,
             'user_from' => 3,
             'user_to' => 2,
             'amount' => '1.33',
@@ -82,7 +106,8 @@ class TransferOperationTest extends KernelTestCase
     {
         $this->initClass();
 
-        $result = $this->operation->process([
+        $result = $this->service->process([
+            'type' => TransferOperation::class,
             'user_from' => 1,
             'user_to' => 3,
             'amount' => '1.33',
@@ -99,7 +124,8 @@ class TransferOperationTest extends KernelTestCase
     {
         $this->initClass();
 
-        $result = $this->operation->process([
+        $result = $this->service->process([
+            'type' => TransferOperation::class,
             'user_from' => 1,
             'user_to' => 2,
             'amount' => '666.66',
@@ -116,26 +142,13 @@ class TransferOperationTest extends KernelTestCase
     {
         $this->initClass();
 
-        $result = $this->operation->process([
+        $result = $this->service->process([
+            'type' => TransferOperation::class,
             'user_from' => 1,
             'user_to' => 2,
             'amount' => '-1.00',
         ]);
 
         static::assertFalse($result);
-    }
-
-    private function initClass(): void
-    {
-        if (!self::$booted) {
-            self::bootKernel();
-        }
-
-        $container = self::$container;
-
-        $this->em = $container->get(EntityManagerInterface::class);
-        $logger = $container->get(LoggerInterface::class);
-
-        $this->operation = new TransferOperation($this->em, $logger);
     }
 }

@@ -7,6 +7,8 @@ namespace App\Tests\Operation;
 use App\Entity\Account;
 use App\Entity\OperationHistory;
 use App\Operation\WithdrawalOperation;
+use App\Service\OperationProcessorService;
+use App\Service\RequestFieldsValidatorService;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
@@ -19,6 +21,8 @@ class WithdrawalOperationTest extends KernelTestCase
 {
     private WithdrawalOperation $operation;
 
+    private OperationProcessorService $service;
+
     private EntityManagerInterface $em;
 
     /**
@@ -29,8 +33,10 @@ class WithdrawalOperationTest extends KernelTestCase
     {
         $this->initClass();
 
-        $result = $this->operation->process([
+        $result = $this->service->process([
+            'type' => WithdrawalOperation::class,
             'user_from' => 1,
+            'user_to' => null,
             'amount' => '1.33',
         ]);
 
@@ -52,6 +58,25 @@ class WithdrawalOperationTest extends KernelTestCase
         static::assertEquals('1.33', $operationHistory->getAmount());
     }
 
+    private function initClass(): void
+    {
+        if (!self::$booted) {
+            self::bootKernel();
+        }
+
+        $container = self::$container;
+
+        $this->em = $container->get(EntityManagerInterface::class);
+        $logger = $container->get(LoggerInterface::class);
+
+        $fieldsValidatorService = $container->get(RequestFieldsValidatorService::class);
+
+        $this->service = new OperationProcessorService($this->em, $logger, $fieldsValidatorService);
+
+        $this->operation = new WithdrawalOperation($this->service->getEm());
+        $this->service->setOperation($this->operation);
+    }
+
     /**
      * @test
      * @covers \App\Operation\WithdrawalOperation::process
@@ -60,8 +85,10 @@ class WithdrawalOperationTest extends KernelTestCase
     {
         $this->initClass();
 
-        $result = $this->operation->process([
+        $result = $this->service->process([
+            'type' => WithdrawalOperation::class,
             'user_from' => 3,
+            'user_to' => null,
             'amount' => '1.33',
         ]);
 
@@ -76,8 +103,10 @@ class WithdrawalOperationTest extends KernelTestCase
     {
         $this->initClass();
 
-        $result = $this->operation->process([
+        $result = $this->service->process([
+            'type' => WithdrawalOperation::class,
             'user_from' => 1,
+            'user_to' => null,
             'amount' => '100.01',
         ]);
 
@@ -92,25 +121,13 @@ class WithdrawalOperationTest extends KernelTestCase
     {
         $this->initClass();
 
-        $result = $this->operation->process([
+        $result = $this->service->process([
+            'type' => WithdrawalOperation::class,
             'user_from' => 1,
+            'user_to' => null,
             'amount' => '-1.00',
         ]);
 
         static::assertFalse($result);
-    }
-
-    private function initClass(): void
-    {
-        if (!self::$booted) {
-            self::bootKernel();
-        }
-
-        $container = self::$container;
-
-        $this->em = $container->get(EntityManagerInterface::class);
-        $logger = $container->get(LoggerInterface::class);
-
-        $this->operation = new WithdrawalOperation($this->em, $logger);
     }
 }

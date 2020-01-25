@@ -7,6 +7,8 @@ namespace App\Tests\Operation;
 use App\Entity\Account;
 use App\Entity\OperationHistory;
 use App\Operation\DepositOperation;
+use App\Service\OperationProcessorService;
+use App\Service\RequestFieldsValidatorService;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
@@ -19,6 +21,8 @@ class DepositOperationTest extends KernelTestCase
 {
     private DepositOperation $operation;
 
+    private OperationProcessorService $service;
+
     private EntityManagerInterface $em;
 
     /**
@@ -29,7 +33,9 @@ class DepositOperationTest extends KernelTestCase
     {
         $this->initClass();
 
-        $result = $this->operation->process([
+        $result = $this->service->process([
+            'type' => DepositOperation::class,
+            'user_from' => null,
             'user_to' => 1,
             'amount' => '1.33',
         ]);
@@ -52,22 +58,6 @@ class DepositOperationTest extends KernelTestCase
         static::assertEquals('1.33', $operationHistory->getAmount());
     }
 
-    /**
-     * @test
-     * @covers \App\Operation\DepositOperation::process
-     */
-    public function depositForUnexistentAccount()
-    {
-        $this->initClass();
-
-        $result = $this->operation->process([
-            'user_to' => 3,
-            'amount' => '1.33',
-        ]);
-
-        static::assertFalse($result);
-    }
-
     private function initClass(): void
     {
         if (!self::$booted) {
@@ -78,7 +68,29 @@ class DepositOperationTest extends KernelTestCase
 
         $this->em = $container->get(EntityManagerInterface::class);
         $logger = $container->get(LoggerInterface::class);
+        $fieldsValidatorService = $container->get(RequestFieldsValidatorService::class);
 
-        $this->operation = new DepositOperation($this->em, $logger);
+        $this->service = new OperationProcessorService($this->em, $logger, $fieldsValidatorService);
+
+        $this->operation = new DepositOperation($this->service->getEm());
+        $this->service->setOperation($this->operation);
+    }
+
+    /**
+     * @test
+     * @covers \App\Operation\DepositOperation::process
+     */
+    public function depositForUnexistentAccount()
+    {
+        $this->initClass();
+
+        $result = $this->service->process([
+            'type' => DepositOperation::class,
+            'user_from' => null,
+            'user_to' => 3,
+            'amount' => '1.33',
+        ]);
+
+        static::assertFalse($result);
     }
 }

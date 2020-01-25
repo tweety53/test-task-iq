@@ -40,11 +40,11 @@ class ValidationDataPreparerTest extends TestCase
 
         $input = new ConstraintViolationList(
             [
-                new ConstraintViolation('b','',[],'test','a',''),
-                new ConstraintViolation('d','',[],'test','c',''),
+                new ConstraintViolation('b', '', [], 'test', 'a', ''),
+                new ConstraintViolation('d', '', [], 'test', 'c', ''),
             ]
         );
 
-        static::assertEquals($expected,ValidationDataPreparer::prepareForJsonResponse($input));
+        static::assertEquals($expected, ValidationDataPreparer::prepareForJsonResponse($input));
     }
 }

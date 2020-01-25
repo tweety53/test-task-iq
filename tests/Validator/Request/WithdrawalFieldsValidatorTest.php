@@ -17,19 +17,6 @@ class WithdrawalFieldsValidatorTest extends KernelTestCase
 {
     private ValidatorInterface $validator;
 
-    protected function setUp()
-    {
-        parent::setUp();
-
-        if (!self::$booted) {
-            self::bootKernel();
-        }
-
-        $container = self::$container;
-
-        $this->validator = $container->get(ValidatorInterface::class);
-    }
-
     /**
      * @test
      * @covers \App\Validator\Request\WithdrawalFieldsValidator::validate
@@ -150,5 +137,18 @@ class WithdrawalFieldsValidatorTest extends KernelTestCase
                 ],
             ],
         ];
+    }
+
+    protected function setUp()
+    {
+        parent::setUp();
+
+        if (!self::$booted) {
+            self::bootKernel();
+        }
+
+        $container = self::$container;
+
+        $this->validator = $container->get(ValidatorInterface::class);
     }
 }
