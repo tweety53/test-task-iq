@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 
 namespace App\Entity;
 
@@ -8,7 +9,7 @@ use Doctrine\ORM\Mapping as ORM;
  * Account
  *
  * @ORM\Table(name="account")
- * @ORM\Entity
+ * @ORM\Entity(repositoryClass="App\Repository\AccountRepository")
  */
 class Account
 {
@@ -34,6 +35,16 @@ class Account
     public function getUserId(): int
     {
         return $this->userId;
+    }
+
+    /**
+     * @param int $userId
+     * @return Account
+     */
+    public function setUserId(int $userId): Account
+    {
+        $this->userId = $userId;
+        return $this;
     }
 
 

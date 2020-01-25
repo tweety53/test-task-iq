@@ -25,3 +25,19 @@ services:
 
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones
+    App\Validator\RequestFieldsValidatorService:
+        autowire: true
+
+    app.validator.account_exists:
+        autowire: true
+        class: App\Validator\AccountExistsValidator
+        arguments: ['@doctrine.orm.default_entity_manager']
+        tags:
+            - { name: validator.constraint_validator, alias: account_exists }
+
+    app.validator.account_has_enough_funds:
+        autowire: true
+        class: App\Validator\AccountHasEnoughFundsValidator
+        arguments: ['@doctrine.orm.default_entity_manager']
+        tags:
+            - { name: validator.constraint_validator, alias: account_has_enough_funds }

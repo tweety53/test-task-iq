@@ -1,3 +1,4 @@
-lucky:
-  path: /lucky/{max}
-  controller: App\Controller\LuckyController::number
+account_operation:
+  path: /account/{operation}
+  controller: App\Controller\AccountController::performOperation
+  methods: POST
